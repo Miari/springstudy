@@ -5,7 +5,9 @@ public class MessagePrinter implements Printer {
     private String message;
 
     // создать аннотацию и аннотировать поле так, что бы при поднятии контекста
-    // в поле инжектилось случайное число от 0 до числа заданого при помощи аннотации
+    // в поле инжектилось случайное число от 0 до числа заданого при помощи аннотации"
+    //
+    @InjectRandomInt(max = 15)
     private int count;
 
     public void print() {

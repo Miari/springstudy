@@ -2,6 +2,7 @@ package lab2.practice;
 
 
 public class MessagePrinter implements Printer {
+
     private String message;
 
     public void print() {

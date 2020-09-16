@@ -13,6 +13,9 @@ public class TestRunner {
         }) {
             printer.print();
         }
-
+        /*PropertyPlaceholder propertyPlaceholder = new PropertyPlaceholder();
+        propertyPlaceholder = context.getBean(PropertyPlaceholder.class);
+        propertyPlaceholder.print();*/
+       // System.out.println((context.getBean(PropertyPlaceholder.class)).getClass());
     }
 }

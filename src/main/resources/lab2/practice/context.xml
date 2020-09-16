@@ -4,7 +4,6 @@
        xsi:schemaLocation="http://www.springframework.org/schema/beans
 	   					   http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-
     <bean id="printer1" class="lab2.practice.MessagePrinter">
         <property name="message" value="user"/>
     </bean>
@@ -17,4 +16,6 @@
         <property name="message" value="url"/>
     </bean>
 
+    <bean id="propertyPlaceholder" class="lab2.practice.PropertyPlaceholder">
+    </bean>
 </beans>
