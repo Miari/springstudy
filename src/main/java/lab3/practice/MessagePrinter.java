@@ -1,6 +1,7 @@
 package lab3.practice;
 
 @Logger
+@Transactional
 public class MessagePrinter implements Printer {
     private String message;
 

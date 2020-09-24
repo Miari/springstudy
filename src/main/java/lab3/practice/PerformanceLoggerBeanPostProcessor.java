@@ -12,17 +12,47 @@ import java.util.Map;
 
 public class PerformanceLoggerBeanPostProcessor implements BeanPostProcessor {
     Map<String, Class> beansWithAnnotationLogger = new HashMap<>();
+    Map<String, Class> beansWithAnnotationTransactional = new HashMap<>();
 
     public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
         Class<?> clazz = bean.getClass();
         if (clazz.isAnnotationPresent(Logger.class)) {
             beansWithAnnotationLogger.put(beanName, clazz);
         }
+        if (clazz.isAnnotationPresent(Transactional.class)) {
+            beansWithAnnotationTransactional.put(beanName, clazz);
+        }
         return bean;
     }
 
     public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
-        if (beansWithAnnotationLogger.containsKey(beanName)) {
+
+        if (beansWithAnnotationLogger.containsKey(beanName) && beansWithAnnotationTransactional.containsKey(beanName)) {
+            Class clazz = beansWithAnnotationLogger.get(beanName);
+            Object proxy = Proxy.newProxyInstance(clazz.getClassLoader(), clazz.getInterfaces(), new InvocationHandler() {
+
+                @Override
+                public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+                    long start = System.currentTimeMillis();
+                    Object result = method.invoke(bean, args);
+                    long end = System.currentTimeMillis();
+                    System.out.println("Method worked " + (end - start) + " ms.");
+                    return result;
+                }
+            });
+
+            Object finalProxy = proxy;
+            return Proxy.newProxyInstance(clazz.getClassLoader(), clazz.getInterfaces(), new InvocationHandler() {
+
+                @Override
+                public Object invoke(Object methodsProxy, Method method, Object[] args) throws Throwable {
+                    System.out.println("Transaction start");
+                    Object result = method.invoke(finalProxy, args);
+                    System.out.println("Transaction end \n");
+                    return result;
+                }
+            });
+        } else if (beansWithAnnotationLogger.containsKey(beanName)) {
             Class clazz = beansWithAnnotationLogger.get(beanName);
             return Proxy.newProxyInstance(clazz.getClassLoader(), clazz.getInterfaces(), new InvocationHandler() {
 
@@ -31,7 +61,19 @@ public class PerformanceLoggerBeanPostProcessor implements BeanPostProcessor {
                     long start = System.currentTimeMillis();
                     Object result = method.invoke(bean, args);
                     long end = System.currentTimeMillis();
-                    System.out.println("Method worked " + (end - start) + " ms.");
+                    System.out.println("Method worked " + (end - start) + " ms. \n");
+                    return result;
+                }
+            });
+        } else if (beansWithAnnotationTransactional.containsKey(beanName)) {
+            Class clazz = beansWithAnnotationTransactional.get(beanName);
+            return Proxy.newProxyInstance(clazz.getClassLoader(), clazz.getInterfaces(), new InvocationHandler() {
+
+                @Override
+                public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+                    System.out.println("Transaction start");
+                    Object result = method.invoke(bean, args);
+                    System.out.println("Transaction end \n");
                     return result;
                 }
             });
