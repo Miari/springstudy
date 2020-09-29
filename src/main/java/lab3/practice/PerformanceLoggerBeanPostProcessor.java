@@ -33,11 +33,7 @@ public class PerformanceLoggerBeanPostProcessor implements BeanPostProcessor {
 
                 @Override
                 public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-                    long start = System.currentTimeMillis();
-                    Object result = method.invoke(bean, args);
-                    long end = System.currentTimeMillis();
-                    System.out.println("Method worked " + (end - start) + " ms.");
-                    return result;
+                    return measureRunTime(bean, method, args);
                 }
             });
 
@@ -46,10 +42,7 @@ public class PerformanceLoggerBeanPostProcessor implements BeanPostProcessor {
 
                 @Override
                 public Object invoke(Object methodsProxy, Method method, Object[] args) throws Throwable {
-                    System.out.println("Transaction start");
-                    Object result = method.invoke(finalProxy, args);
-                    System.out.println("Transaction end \n");
-                    return result;
+                    return printStartEnd(finalProxy, method, args);
                 }
             });
         } else if (beansWithAnnotationLogger.containsKey(beanName)) {
@@ -58,11 +51,7 @@ public class PerformanceLoggerBeanPostProcessor implements BeanPostProcessor {
 
                 @Override
                 public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-                    long start = System.currentTimeMillis();
-                    Object result = method.invoke(bean, args);
-                    long end = System.currentTimeMillis();
-                    System.out.println("Method worked " + (end - start) + " ms. \n");
-                    return result;
+                    return measureRunTime(bean, method, args);
                 }
             });
         } else if (beansWithAnnotationTransactional.containsKey(beanName)) {
@@ -71,13 +60,25 @@ public class PerformanceLoggerBeanPostProcessor implements BeanPostProcessor {
 
                 @Override
                 public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-                    System.out.println("Transaction start");
-                    Object result = method.invoke(bean, args);
-                    System.out.println("Transaction end \n");
-                    return result;
+                    return printStartEnd(bean, method, args);
                 }
             });
         }
         return bean;
+    }
+
+    private Object printStartEnd(Object bean, Method method, Object[] args) throws Throwable {
+        System.out.println("Transaction start");
+        Object result = method.invoke(bean, args);
+        System.out.println("Transaction end \n");
+        return result;
+    }
+
+    private Object measureRunTime(Object bean, Method method, Object[] args) throws Throwable {
+        long start = System.currentTimeMillis();
+        Object result = method.invoke(bean, args);
+        long end = System.currentTimeMillis();
+        System.out.println("Method worked " + (end - start) + " ms.");
+        return result;
     }
 }
